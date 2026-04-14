@@ -12,14 +12,12 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // scroll effect
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 12);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // load user
   useEffect(() => {
     const load = () => {
       const u = localStorage.getItem("user");
@@ -30,7 +28,6 @@ const Navbar = () => {
     return () => window.removeEventListener("storage", load);
   }, []);
 
-  // close dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -41,7 +38,6 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // close mobile menu on route change
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
@@ -78,19 +74,22 @@ const Navbar = () => {
           </span>
         </Link>
 
-        {/* DESKTOP NAV */}
+        {/* 🔥 DESKTOP NAV WITH COOL HOVER */}
         <div className="hidden md:flex items-center gap-1">
           {links.map(({ to, label }) => (
             <Link
               key={to}
               to={to}
-              className={`relative px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
-                isActive(to)
+              className={`relative px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-300 group
+                ${isActive(to)
                   ? "text-[#E6D3A3] bg-[#E6D3A3]/10"
-                  : "text-white/70 hover:text-[#E6D3A3] hover:bg-[#E6D3A3]/5"
-              }`}
+                  : "text-white/70 hover:text-[#E6D3A3]"
+                }`}
             >
               {label}
+
+              {/* ✨ animated underline */}
+              <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-[#E6D3A3] to-[#C8A96E] transition-all duration-300 group-hover:w-full"></span>
             </Link>
           ))}
         </div>
@@ -131,7 +130,6 @@ const Navbar = () => {
                 <button className="btn-outline text-sm py-2 px-4">Login</button>
               </Link>
 
-              {/* ✅ FIXED */}
               <Link to="/signup">
                 <button className="btn-primary text-sm py-2 px-4">Sign Up</button>
               </Link>
@@ -139,7 +137,7 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* MOBILE MENU BUTTON */}
+        {/* MOBILE BUTTON */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="md:hidden text-[#E6D3A3]"
