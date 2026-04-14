@@ -12,12 +12,14 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // scroll effect
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 12);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // load user
   useEffect(() => {
     const load = () => {
       const u = localStorage.getItem("user");
@@ -28,6 +30,7 @@ const Navbar = () => {
     return () => window.removeEventListener("storage", load);
   }, []);
 
+  // close dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -38,6 +41,7 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // close mobile menu on route change
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
@@ -74,7 +78,7 @@ const Navbar = () => {
           </span>
         </Link>
 
-        {/* 🔥 DESKTOP NAV WITH COOL HOVER */}
+        {/* DESKTOP NAV */}
         <div className="hidden md:flex items-center gap-1">
           {links.map(({ to, label }) => (
             <Link
@@ -83,13 +87,16 @@ const Navbar = () => {
               className={`relative px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-300 group
                 ${isActive(to)
                   ? "text-[#E6D3A3] bg-[#E6D3A3]/10"
-                  : "text-white/70 hover:text-[#E6D3A3]"
+                  : "text-white/70 hover:text-[#E6D3A3] hover:bg-[#E6D3A3]/5"
                 }`}
             >
               {label}
 
-              {/* ✨ animated underline */}
-              <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-[#E6D3A3] to-[#C8A96E] transition-all duration-300 group-hover:w-full"></span>
+              {/* 🔥 FIXED UNDERLINE */}
+              <span
+                className={`absolute left-0 -bottom-1 h-[2px] bg-gradient-to-r from-[#E6D3A3] to-[#C8A96E] transition-all duration-300
+                ${isActive(to) ? "w-full" : "w-0 group-hover:w-full"}`}
+              ></span>
             </Link>
           ))}
         </div>
