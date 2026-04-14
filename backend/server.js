@@ -100,20 +100,31 @@ const fetchYouTubeTranscript = async (videoUrl) => {
     // Free caption discovery endpoint
     const videoResponse = await axios.get(`https://yt.lemnoslife.com/videos?part=captions&id=${videoId}`);
     const captionTracks = videoResponse.data?.items?.[0]?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-    const captionUrl = captionTracks?.[0]?.baseUrl;
+    console.log("📺 Captions response:", videoResponse.data);
+
+    const selectedTrack = captionTracks?.find((track) => track.languageCode === "en") || captionTracks?.[0];
+    console.log("🎯 Selected caption track:", selectedTrack);
+
+    const captionUrl = selectedTrack?.baseUrl;
 
     if (!captionUrl) {
-      const error = new Error("This video has no captions. Try another video.");
+      const error = new Error("No captions available for this video");
       error.code = "NO_CAPTIONS";
       throw error;
     }
 
     // Fetch the XML captions and flatten them into plain text
     const captionsResponse = await axios.get(captionUrl);
-    const transcriptText = buildTranscriptText(captionsResponse.data);
+    const xmlData = captionsResponse.data;
+    const matches = xmlData.match(/<text[^>]*>(.*?)<\/text>/g);
+    const transcriptText = matches
+      ?.map((line) => decodeXmlEntities(line.replace(/<[^>]+>/g, "")))
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim() || "";
 
     if (!transcriptText) {
-      const error = new Error("This video has no captions. Try another video.");
+      const error = new Error("No captions available for this video");
       error.code = "NO_CAPTIONS";
       throw error;
     }
@@ -299,8 +310,8 @@ app.post("/api/youtube", async (req, res) => {
     if (!transcriptText || transcriptText.trim().length === 0) {
       return res.status(404).json({
         success: false,
-        message: "This video has no captions. Try another video.",
-        error: "This video has no captions. Try another video.",
+        message: "No captions available for this video",
+        error: "No captions available for this video",
       });
     }
 
@@ -346,7 +357,7 @@ ${transcript}
     const message = err.code === "INVALID_URL"
       ? "Invalid YouTube URL"
       : err.code === "NO_CAPTIONS"
-        ? "This video has no captions. Try another video."
+        ? "No captions available for this video"
         : "Failed to fetch YouTube transcript";
     return res.status(statusCode).json({
       success: false,
