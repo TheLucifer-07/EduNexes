@@ -25,9 +25,18 @@ const YouTube = () => {
       });
       const data = await response.json();
       if (!response.ok) {
-        setError(data.error?.includes("transcript")
-          ? "❌ This video has no captions. Try another video."
-          : data.error || "Failed to process video");
+        const noCaptionCodes = ["NO_TRANSCRIPT", "TRANSCRIPTS_DISABLED"];
+        const blockedCodes = ["REQUEST_BLOCKED", "YOUTUBE_REQUEST_FAILED"];
+
+        if (noCaptionCodes.includes(data.code)) {
+          setError("❌ This video has no usable captions. Try another video.");
+        } else if (blockedCodes.includes(data.code)) {
+          setError("❌ The server could not reach YouTube captions. Please check the backend deployment logs.");
+        } else if (data.code === "PYTHON_EXECUTION_FAILED") {
+          setError("❌ The transcript service is not installed correctly on the backend.");
+        } else {
+          setError(data.error || "Failed to process video");
+        }
       } else if (data.result) setResult(data.result);
       else setError("No response from server");
     } catch (err) {

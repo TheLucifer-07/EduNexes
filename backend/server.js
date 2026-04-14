@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import mongoose from "mongoose";
 import path from "path";
@@ -221,31 +221,44 @@ app.post("/api/youtube", (req, res) => {
 
   // Python script path
   const scriptPath = path.join(__dirname, "transcript.py");
-  const command = `python3 "${scriptPath}" "${url}"`;
 
   console.log("🐍 Running Python script...");
 
-  exec(command, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout, stderr) => {
+  execFile("python3", [scriptPath, url], { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout, stderr) => {
     // Python error
     if (error) {
       console.error("❌ Python Error:", stderr || error.message);
       return res.status(500).json({
-        error: "Failed to fetch transcript",
+        error: "Failed to run transcript service",
+        code: "PYTHON_EXECUTION_FAILED",
       });
     }
 
     // Empty output
     if (!stdout || stdout.trim().length === 0) {
       return res.status(500).json({
-        error: "No transcript available",
+        error: "Transcript service returned no data",
+        code: "EMPTY_TRANSCRIPT_RESPONSE",
       });
     }
 
-    // Check custom error from Python
-    if (stdout.startsWith("Error:")) {
-      console.error("❌ Transcript Error:", stdout);
-      return res.status(400).json({
-        error: stdout.trim(),
+    let transcriptPayload;
+    try {
+      transcriptPayload = JSON.parse(stdout.trim());
+    } catch (parseError) {
+      console.error("❌ Transcript Parse Error:", parseError.message, stdout);
+      return res.status(500).json({
+        error: "Transcript service returned invalid data",
+        code: "INVALID_TRANSCRIPT_RESPONSE",
+      });
+    }
+
+    if (!transcriptPayload.ok) {
+      console.error("❌ Transcript Error:", transcriptPayload);
+      const statusCode = ["INVALID_URL", "MISSING_URL"].includes(transcriptPayload.code) ? 400 : 502;
+      return res.status(statusCode).json({
+        error: transcriptPayload.error,
+        code: transcriptPayload.code,
       });
     }
 
@@ -253,7 +266,7 @@ app.post("/api/youtube", (req, res) => {
 
     try {
       // Limit transcript size (important for Gemini)
-      const transcript = stdout.slice(0, 8000);
+      const transcript = transcriptPayload.text.slice(0, 8000);
 
       const prompt = `
 You are an AI study assistant.
