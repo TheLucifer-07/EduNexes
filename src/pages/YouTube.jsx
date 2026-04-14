@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Copy, Zap, PlayCircle, AlertCircle } from "lucide-react";
+import Reveal from "../components/Reveal";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -45,7 +46,8 @@ const YouTube = () => {
 
   return (
     <article className="page-wrapper">
-      <section className="max-w-4xl mx-auto section-card">
+      <Reveal variant="fade-up" className="max-w-4xl mx-auto">
+      <section className="section-card motion-panel">
 
         {/* HEADER */}
         <div className="px-6 md:px-8 py-5 border-b border-[#E6D3A3]/10 flex items-center gap-3">
@@ -62,7 +64,8 @@ const YouTube = () => {
         <div className="p-5 md:p-6 space-y-4">
 
           {/* INPUT */}
-          <div className="card p-5">
+          <Reveal variant="flip-up">
+          <div className="card p-5 motion-panel-soft">
             <label className="text-xs text-gray-500 uppercase tracking-widest mb-3 block">YouTube URL</label>
             <div className="flex flex-col md:flex-row gap-3">
               <input type="text" placeholder="Paste YouTube URL here..."
@@ -84,9 +87,11 @@ const YouTube = () => {
               </div>
             )}
           </div>
+          </Reveal>
 
           {/* OUTPUT */}
-          <div className="card p-5 h-[380px] flex flex-col">
+          <Reveal variant="zoom-in" delay={120}>
+          <div className="card p-5 h-[380px] flex flex-col motion-panel-soft">
             {!result && !loading && !error && (
               <div className="flex flex-col items-center justify-center flex-1 text-gray-600 text-center">
                 <PlayCircle size={36} className="opacity-20 mb-3" />
@@ -118,9 +123,11 @@ const YouTube = () => {
               </>
             )}
           </div>
+          </Reveal>
 
         </div>
       </section>
+      </Reveal>
     </article>
   );
 };

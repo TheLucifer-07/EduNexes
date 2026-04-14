@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
+import Reveal from "../components/Reveal";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -41,7 +42,8 @@ const Login = () => {
 
   return (
     <article className="min-h-screen flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-sm fade-up">
+      <Reveal variant="zoom-in" className="w-full max-w-sm">
+      <div className="w-full max-w-sm">
 
         {/* LOGO */}
         <div className="text-center mb-8">
@@ -56,7 +58,7 @@ const Login = () => {
         </div>
 
         {/* CARD */}
-        <div className="section-card p-6 space-y-4">
+        <div className="section-card p-6 space-y-4 motion-panel">
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
@@ -130,6 +132,7 @@ const Login = () => {
           By signing in, you agree to our Terms of Service
         </p>
       </div>
+      </Reveal>
     </article>
   );
 };

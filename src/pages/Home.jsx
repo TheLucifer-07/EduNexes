@@ -4,6 +4,7 @@ import {
   Plus, Trash2, CheckCircle2, Circle, Flag, Trophy, Flame, Target,
   Clock, Calendar, Pencil, X, Check, AlertCircle, Loader2
 } from "lucide-react";
+import Reveal from "../components/Reveal";
 
 const PRIORITY = {
   High:   { color: "text-red-400",    bg: "bg-red-400/10",    border: "border-red-400/30"    },
@@ -128,30 +129,30 @@ const Home = () => {
     <div className="text-white min-h-screen px-6 md:px-16 py-10 mt-14">
 
       {user ? (
-        <div className="text-center max-w-4xl mx-auto mt-10">
+        <Reveal variant="fade-up" className="text-center max-w-4xl mx-auto mt-10">
           <p className="text-[#E6D3A3]/60 text-sm font-medium tracking-widest uppercase mb-3">Welcome back</p>
           <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-[#E6D3A3] to-[#D4AF8D] bg-clip-text text-transparent">
             {user.name} 👋
           </h1>
           <p className="mt-4 text-gray-400 text-lg">Ready to continue learning? Pick up where you left off.</p>
-        </div>
+        </Reveal>
       ) : (
-        <div className="text-center max-w-4xl mx-auto mt-10">
+        <Reveal variant="fade-up" className="text-center max-w-4xl mx-auto mt-10">
           <h1 className="text-4xl md:text-5xl font-bold text-[#E6D3A3]">Welcome to EduNexes 🚀</h1>
           <p className="mt-6 text-gray-400 text-lg">Your AI-powered student operating system to learn faster, smarter, and better.</p>
           <div className="mt-8 flex justify-center gap-4 flex-wrap">
             <Link to="/chat"><button className="bg-[#E6D3A3] text-black px-6 py-2 rounded-md hover:opacity-80 transition">Start Learning</button></Link>
             <Link to="/notes"><button className="border border-[#E6D3A3]/40 px-6 py-2 rounded-md hover:bg-[#E6D3A3] hover:text-black transition">Generate Notes</button></Link>
           </div>
-        </div>
+        </Reveal>
       )}
 
       {/* FEATURES */}
       <div className="mt-16 grid md:grid-cols-4 gap-6">
-        <FeatureCard title="AI Chat"         desc="Ask anything and learn instantly"   link="/chat"      />
-        <FeatureCard title="Notes Generator" desc="Turn topics into structured notes"  link="/notes"     />
-        <FeatureCard title="YouTube AI"      desc="Convert videos into mindmaps"       link="/youtube"   />
-        <FeatureCard title="Resume Analyzer" desc="Improve your resume with AI"        link="/resume"    />
+        <FeatureCard title="AI Chat"         desc="Ask anything and learn instantly"   link="/chat" delay={0}   />
+        <FeatureCard title="Notes Generator" desc="Turn topics into structured notes"  link="/notes" delay={120} />
+        <FeatureCard title="YouTube AI"      desc="Convert videos into mindmaps"       link="/youtube" delay={240} />
+        <FeatureCard title="Resume Analyzer" desc="Improve your resume with AI"        link="/resume" delay={360} />
       </div>
 
       {/* PROGRESS + TASK MANAGER — only when logged in */}
@@ -159,7 +160,8 @@ const Home = () => {
         <div className="mt-16 grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
 
           {/* PROGRESS TRACKER */}
-          <div className="bg-[#161B22] border border-[#E6D3A3]/10 rounded-2xl p-6 flex flex-col gap-6">
+          <Reveal variant="flip-up">
+          <div className="bg-[#161B22]/90 border border-[#E6D3A3]/10 rounded-2xl p-6 flex flex-col gap-6 backdrop-blur-md">
             <div className="flex items-center gap-2">
               <Target size={20} className="text-[#E6D3A3]" />
               <h2 className="text-lg font-bold text-[#E6D3A3]">Progress Tracker</h2>
@@ -237,9 +239,11 @@ const Home = () => {
               )}
             </div>
           </div>
+          </Reveal>
 
           {/* TASK MANAGER */}
-          <div className="bg-[#161B22] border border-[#E6D3A3]/10 rounded-2xl p-6 flex flex-col gap-4">
+          <Reveal variant="flip-down" delay={120}>
+          <div className="bg-[#161B22]/90 border border-[#E6D3A3]/10 rounded-2xl p-6 flex flex-col gap-4 backdrop-blur-md">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={20} className="text-[#E6D3A3]" />
@@ -365,11 +369,12 @@ const Home = () => {
               })}
             </div>
           </div>
+          </Reveal>
         </div>
       )}
 
       {/* TECH STACK TAGS */}
-      <div className="mt-16 text-center">
+      <Reveal variant="zoom-in" className="mt-16 text-center">
         <h2 className="text-2xl text-[#E6D3A3] mb-6">Powered By</h2>
         <div className="flex flex-wrap justify-center gap-3">
           {["React", "Tailwind", "Node.js", "MongoDB", "GeminiAPI"].map((tech) => (
@@ -378,29 +383,31 @@ const Home = () => {
             </span>
           ))}
         </div>
-      </div>
+      </Reveal>
 
       {/* QUICK ACTIONS */}
-      <div className="mt-20 text-center">
+      <Reveal variant="zoom-out" className="mt-20 text-center">
         <h2 className="text-2xl text-[#E6D3A3] mb-6">Quick Actions</h2>
         <div className="flex flex-wrap justify-center gap-4">
           <Link to="/chat"    className="action-btn">Start Chat</Link>
           <Link to="/notes"   className="action-btn">Create Notes</Link>
           <Link to="/youtube" className="action-btn">Analyze Video</Link>
         </div>
-      </div>
+      </Reveal>
 
     </div>
   );
 };
 
-const FeatureCard = ({ title, desc, link }) => (
+const FeatureCard = ({ title, desc, link, delay = 0 }) => (
+  <Reveal variant="fade-up" delay={delay}>
   <Link to={link}>
-    <div className="bg-[#161B22] p-6 rounded-xl border border-[#E6D3A3]/10 hover:border-[#E6D3A3]/40 hover:scale-105 transition cursor-pointer">
+    <div className="bg-[#161B22]/85 p-6 rounded-xl border border-[#E6D3A3]/10 hover:border-[#E6D3A3]/40 hover:scale-105 transition cursor-pointer backdrop-blur-sm">
       <h3 className="text-xl text-[#E6D3A3]">{title}</h3>
       <p className="text-gray-400 mt-2 text-sm">{desc}</p>
     </div>
   </Link>
+  </Reveal>
 );
 
 export default Home;

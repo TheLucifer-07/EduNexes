@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Folder, ExternalLink, Download, ChevronLeft, BookOpen } from "lucide-react";
+import Reveal from "../components/Reveal";
 
 // Google Drive Links Generator
 function driveLinks(id) {
@@ -3356,7 +3357,7 @@ const data = {
     <article className="min-h-screen text-white pt-32 pb-8 px-4 md:px-6 relative overflow-hidden">
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-7xl mx-auto">
+      <Reveal variant="fade-up" className="relative z-10 max-w-7xl mx-auto">
         
         {/* Header with Back Button */}
         <div className="mb-8 flex items-center justify-between">
@@ -3380,7 +3381,7 @@ const data = {
 
         {/* Breadcrumb Navigation */}
         {step > 1 && (
-          <section className="mb-8 p-4 bg-gradient-to-r from-[#E6D3A3]/5 to-[#D4AF8D]/5 rounded-xl border border-[#E6D3A3]/20 backdrop-blur-sm">
+          <section className="mb-8 p-4 bg-gradient-to-r from-[#E6D3A3]/5 to-[#D4AF8D]/5 rounded-xl border border-[#E6D3A3]/20 backdrop-blur-sm motion-panel-soft">
             <p className="text-xs uppercase tracking-widest text-gray-500 mb-3">Path</p>
             <div className="flex flex-wrap gap-3 items-center">
               {selectedYear && (
@@ -3412,7 +3413,7 @@ const data = {
         )}
 
         {/* Main Content Section */}
-        <section className="bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] rounded-3xl border border-[#E6D3A3]/20 backdrop-blur-xl shadow-2xl overflow-hidden">
+        <section className="bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] rounded-3xl border border-[#E6D3A3]/20 backdrop-blur-xl shadow-2xl overflow-hidden motion-panel">
           
           {/* Year Selection */}
           {step === 1 && (
@@ -3616,7 +3617,7 @@ const data = {
           )}
 
         </section>
-      </div>
+      </Reveal>
     </article>
   );
 };

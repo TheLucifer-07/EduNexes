@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { MessageSquare, FileText, Play, Briefcase, BookOpen } from "lucide-react";
 
 const Footer = () => (
-  <footer className="relative border-t border-[#E6D3A3]/10 mt-8">
+  <footer className="relative border-t border-[#E6D3A3]/10 mt-8 route-shell-enter">
     <div className="max-w-7xl mx-auto px-5 md:px-10 py-12">
       <div className="grid md:grid-cols-4 gap-10">
 

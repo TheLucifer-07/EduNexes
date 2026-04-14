@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Mail, Lock, User, LogIn, Eye, EyeOff, Check } from "lucide-react";
 import { Link } from "react-router-dom";
+import Reveal from "../components/Reveal";
 
 const Signup = () => {
   const [name, setName] = useState("");
@@ -59,7 +60,8 @@ const Signup = () => {
 
   return (
     <article className="min-h-screen flex items-center justify-center px-4 py-8 mt-12">
-      <div className="w-full max-w-sm fade-up">
+      <Reveal variant="zoom-in" className="w-full max-w-sm">
+      <div className="w-full max-w-sm">
 
         {/* LOGO */}
         <div className="text-center mb-8">
@@ -74,7 +76,7 @@ const Signup = () => {
         </div>
 
         {/* CARD */}
-        <div className="section-card p-6 space-y-4">
+        <div className="section-card p-6 space-y-4 motion-panel">
           <form onSubmit={handleSignup} className="space-y-4">
 
             <div>
@@ -178,6 +180,7 @@ const Signup = () => {
           Join thousands of students learning with EduNexes
         </p>
       </div>
+      </Reveal>
     </article>
   );
 };

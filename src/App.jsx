@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import BackgroundAnimation from "./components/BackgroundAnimation";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -12,26 +12,30 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
 function App() {
+  const location = useLocation();
+
   return (
     <div className="min-h-screen text-white">
       <BackgroundAnimation />
       <Navbar />
 
-      <Routes>
-        {/* ✅ MAIN HOME */}
-        <Route path="/" element={<Home />} />
+      <div key={location.pathname} className="route-shell route-shell-enter">
+        <Routes location={location}>
+          {/* ✅ MAIN HOME */}
+          <Route path="/" element={<Home />} />
 
-        {/* FEATURES */}
-        <Route path="/notes" element={<Notes />} />
-        <Route path="/youtube" element={<YouTube />} />
-        <Route path="/resume" element={<Resume />} />
-        <Route path="/resources" element={<Resources />} />
-        <Route path="/chat" element={<Chat />} />
+          {/* FEATURES */}
+          <Route path="/notes" element={<Notes />} />
+          <Route path="/youtube" element={<YouTube />} />
+          <Route path="/resume" element={<Resume />} />
+          <Route path="/resources" element={<Resources />} />
+          <Route path="/chat" element={<Chat />} />
 
-        {/* AUTH */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-      </Routes>
+          {/* AUTH */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+        </Routes>
+      </div>
       <Footer />
     </div>
   );

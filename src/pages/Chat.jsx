@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Sparkles, Bot, User } from "lucide-react";
+import Reveal from "../components/Reveal";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -39,7 +40,8 @@ const Chat = () => {
 
   return (
     <article className="min-h-screen text-white pt-20 pb-6 px-4 md:px-8 flex flex-col">
-      <section className="max-w-4xl mx-auto w-full flex flex-col section-card" style={{ height: "calc(100vh - 110px)" }}>
+      <Reveal variant="fade-up" className="max-w-4xl mx-auto w-full">
+      <section className="w-full flex flex-col section-card motion-panel" style={{ height: "calc(100vh - 110px)" }}>
 
         {/* HEADER */}
         <div className="px-6 py-4 border-b border-[#E6D3A3]/10 flex items-center justify-between shrink-0">
@@ -115,6 +117,7 @@ const Chat = () => {
         </div>
 
       </section>
+      </Reveal>
     </article>
   );
 };

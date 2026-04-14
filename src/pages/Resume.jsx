@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Upload, FileText, X, Briefcase, CheckCircle, Copy, AlertCircle } from "lucide-react";
+import Reveal from "../components/Reveal";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -43,7 +44,8 @@ const Resume = () => {
 
   return (
     <article className="page-wrapper">
-      <section className="max-w-5xl mx-auto section-card">
+      <Reveal variant="fade-up" className="max-w-5xl mx-auto">
+      <section className="section-card motion-panel">
 
         {/* HEADER */}
         <div className="px-6 md:px-8 py-5 border-b border-[#E6D3A3]/10 flex items-center gap-3">
@@ -61,7 +63,8 @@ const Resume = () => {
           <div className="grid md:grid-cols-2 gap-5">
 
             {/* LEFT — UPLOAD */}
-            <div className="card p-5 flex flex-col h-[480px] overflow-y-auto">
+            <Reveal variant="flip-up">
+            <div className="card p-5 flex flex-col h-[480px] overflow-y-auto motion-panel-soft">
               <p className="text-xs font-semibold text-[#E6D3A3]/60 uppercase tracking-widest mb-4 flex items-center gap-1.5">
                 <Upload size={12} /> Upload Resume
               </p>
@@ -123,9 +126,11 @@ const Resume = () => {
                 </div>
               )}
             </div>
+            </Reveal>
 
             {/* RIGHT — OUTPUT */}
-            <div className="card p-5 flex flex-col h-[480px]">
+            <Reveal variant="flip-down" delay={120}>
+            <div className="card p-5 flex flex-col h-[480px] motion-panel-soft">
               <div className="flex justify-between items-center mb-4">
                 <p className="text-xs font-semibold text-[#E6D3A3]/60 uppercase tracking-widest flex items-center gap-1.5">
                   <FileText size={12} /> AI Feedback
@@ -159,10 +164,12 @@ const Resume = () => {
                 )}
               </div>
             </div>
+            </Reveal>
 
           </div>
         </div>
       </section>
+      </Reveal>
     </article>
   );
 };

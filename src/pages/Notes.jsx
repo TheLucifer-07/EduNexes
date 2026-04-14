@@ -2,6 +2,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import jsPDF from "jspdf";
 import { Download, Copy, BookOpen, Zap } from "lucide-react";
+import Reveal from "../components/Reveal";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -61,7 +62,8 @@ const Notes = () => {
 
   return (
     <article className="page-wrapper">
-      <section className="max-w-5xl mx-auto section-card">
+      <Reveal variant="fade-up" className="max-w-5xl mx-auto">
+      <section className="section-card motion-panel">
 
         {/* HEADER */}
         <div className="px-6 md:px-8 py-5 border-b border-[#E6D3A3]/10 flex items-center gap-3">
@@ -79,7 +81,8 @@ const Notes = () => {
           <div className="grid md:grid-cols-2 gap-5">
 
             {/* LEFT — INPUT */}
-            <div className="card p-5 flex flex-col h-[550px]">
+            <Reveal variant="flip-up">
+            <div className="card p-5 flex flex-col h-[550px] motion-panel-soft">
               <p className="text-xs font-semibold text-[#E6D3A3]/60 uppercase tracking-widest mb-4 flex items-center gap-1.5">
                 <Zap size={12} /> Create Notes
               </p>
@@ -131,9 +134,11 @@ const Notes = () => {
                 </div>
               )}
             </div>
+            </Reveal>
 
             {/* RIGHT — OUTPUT */}
-            <div className="card p-5 flex flex-col h-[550px]">
+            <Reveal variant="flip-down" delay={120}>
+            <div className="card p-5 flex flex-col h-[550px] motion-panel-soft">
               <p className="text-xs font-semibold text-[#E6D3A3]/60 uppercase tracking-widest mb-4 flex items-center gap-1.5">
                 <BookOpen size={12} /> Generated Notes
               </p>
@@ -172,10 +177,12 @@ const Notes = () => {
                 </div>
               )}
             </div>
+            </Reveal>
 
           </div>
         </div>
       </section>
+      </Reveal>
     </article>
   );
 };
