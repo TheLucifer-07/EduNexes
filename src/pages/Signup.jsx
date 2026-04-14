@@ -57,7 +57,7 @@ const Signup = () => {
     : { text: "Strong", color: "text-green-400", w: "w-full", bg: "bg-green-400" };
 
   return (
-    <article className="min-h-screen flex items-center justify-center px-4 py-8">
+    <article className="min-h-screen flex items-center justify-center px-4 py-8 mt-12">
       <div className="w-full max-w-sm fade-up">
 
         {/* LOGO */}
