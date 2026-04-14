@@ -37,11 +37,7 @@ else
     echo "   Install with: cd backend && npm install"
 fi
 
-if [ -f "backend/.env" ] && grep -q "YOUTUBE_TRANSCRIPT_API_KEY=" backend/.env && ! grep -q "YOUTUBE_TRANSCRIPT_API_KEY=your_transcript_api_key_here" backend/.env; then
-    echo "   ✅ YouTube transcript API key configured"
-else
-    echo "   ⚠️  YouTube transcript API key not configured"
-fi
+echo "   ✅ YouTube transcript uses free public captions endpoint"
 
 echo ""
 

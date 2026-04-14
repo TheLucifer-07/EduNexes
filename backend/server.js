@@ -1,4 +1,5 @@
 import express from "express";
+import axios from "axios";
 import cors from "cors";
 import dotenv from "dotenv";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -41,17 +42,12 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Load Gemini API key
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY_1;
-const YOUTUBE_TRANSCRIPT_API_KEY = process.env.YOUTUBE_TRANSCRIPT_API_KEY;
 
 // Log API key status
 if (!GEMINI_API_KEY) {
   console.warn("⚠️  GEMINI API KEY NOT FOUND - Add GEMINI_API_KEY_1 to environment variables");
 } else {
   console.log("🔑 Gemini API Key Loaded ✅");
-}
-
-if (!YOUTUBE_TRANSCRIPT_API_KEY) {
-  console.warn("⚠️  YOUTUBE TRANSCRIPT API KEY NOT FOUND - Add YOUTUBE_TRANSCRIPT_API_KEY to environment variables");
 }
 
 // Initialize Gemini (lazy initialization)
@@ -77,26 +73,22 @@ const getYouTubeVideoId = (videoUrl) => {
   return null;
 };
 
-const buildTranscriptText = (payload) => {
-  const transcript = payload?.data?.transcript;
-  if (!transcript) return "";
-  if (typeof transcript.text === "string" && transcript.text.trim()) return transcript.text.trim();
-  if (Array.isArray(transcript.segments)) {
-    return transcript.segments
-      .map((segment) => segment?.text?.trim())
-      .filter(Boolean)
-      .join(" ");
-  }
-  return "";
+const decodeXmlEntities = (text) => text
+  .replace(/&amp;/g, "&")
+  .replace(/&lt;/g, "<")
+  .replace(/&gt;/g, ">")
+  .replace(/&quot;/g, '"')
+  .replace(/&#39;/g, "'");
+
+const buildTranscriptText = (xmlData) => {
+  if (!xmlData || typeof xmlData !== "string") return "";
+  return decodeXmlEntities(xmlData)
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 };
 
 const fetchYouTubeTranscript = async (videoUrl) => {
-  if (!YOUTUBE_TRANSCRIPT_API_KEY) {
-    const error = new Error("Transcript API key is not configured");
-    error.code = "TRANSCRIPT_API_KEY_MISSING";
-    throw error;
-  }
-
   const videoId = getYouTubeVideoId(videoUrl);
   if (!videoId) {
     const error = new Error("Invalid YouTube URL");
@@ -104,45 +96,35 @@ const fetchYouTubeTranscript = async (videoUrl) => {
     throw error;
   }
 
-  const response = await fetch("https://youtubetranscript.dev/api/v2/transcribe", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${YOUTUBE_TRANSCRIPT_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      video: videoId,
-      language: "en",
-      source: "auto",
-      format: { timestamp: false, paragraphs: false },
-    }),
-  });
-
-  let payload = null;
   try {
-    payload = await response.json();
-  } catch {
-    payload = null;
-  }
+    // Free caption discovery endpoint
+    const videoResponse = await axios.get(`https://yt.lemnoslife.com/videos?part=captions&id=${videoId}`);
+    const captionTracks = videoResponse.data?.items?.[0]?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+    const captionUrl = captionTracks?.[0]?.baseUrl;
 
-  if (!response.ok) {
-    const error = new Error(
-      response.status === 404
-        ? "Transcript not available for this video"
-        : payload?.error || payload?.message || "Transcript API request failed"
-    );
-    error.code = payload?.code || `TRANSCRIPT_API_${response.status}`;
+    if (!captionUrl) {
+      const error = new Error("This video has no captions. Try another video.");
+      error.code = "NO_CAPTIONS";
+      throw error;
+    }
+
+    // Fetch the XML captions and flatten them into plain text
+    const captionsResponse = await axios.get(captionUrl);
+    const transcriptText = buildTranscriptText(captionsResponse.data);
+
+    if (!transcriptText) {
+      const error = new Error("This video has no captions. Try another video.");
+      error.code = "NO_CAPTIONS";
+      throw error;
+    }
+
+    return transcriptText;
+  } catch (err) {
+    if (err.code === "NO_CAPTIONS" || err.code === "INVALID_URL") throw err;
+    const error = new Error("Failed to fetch YouTube transcript");
+    error.code = "TRANSCRIPT_FETCH_FAILED";
     throw error;
   }
-
-  const transcriptText = buildTranscriptText(payload);
-  if (!transcriptText) {
-    const error = new Error("Transcript not available for this video");
-    error.code = "NO_CAPTIONS";
-    throw error;
-  }
-
-  return transcriptText;
 };
 
 const initializeGemini = (modelName = "gemini-flash-latest") => {
@@ -317,7 +299,8 @@ app.post("/api/youtube", async (req, res) => {
     if (!transcriptText || transcriptText.trim().length === 0) {
       return res.status(404).json({
         success: false,
-        error: "Transcript not available for this video",
+        message: "This video has no captions. Try another video.",
+        error: "This video has no captions. Try another video.",
       });
     }
 
@@ -359,10 +342,16 @@ ${transcript}
   } catch (err) {
     console.error("❌ YouTube Transcription Error:", err.message);
 
-    const statusCode = err.code === "INVALID_URL" ? 400 : err.code === "NO_CAPTIONS" ? 404 : 502;
+    const statusCode = err.code === "INVALID_URL" ? 400 : err.code === "NO_CAPTIONS" ? 404 : 500;
+    const message = err.code === "INVALID_URL"
+      ? "Invalid YouTube URL"
+      : err.code === "NO_CAPTIONS"
+        ? "This video has no captions. Try another video."
+        : "Failed to fetch YouTube transcript";
     return res.status(statusCode).json({
       success: false,
-      error: err.message || "Failed to fetch transcript",
+      message,
+      error: message,
       code: err.code || "YOUTUBE_TRANSCRIPTION_FAILED",
     });
   }

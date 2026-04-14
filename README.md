@@ -257,7 +257,6 @@ Backend `backend/.env`
 
 ```env
 GEMINI_API_KEY_1=your_gemini_api_key
-YOUTUBE_TRANSCRIPT_API_KEY=your_transcript_api_key
 PORT=5004
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret

@@ -11,7 +11,6 @@ if [ ! -f .env ]; then
     echo "⚠️  .env file not found. Creating template..."
     cat > .env << EOF
 GEMINI_API_KEY_1=your_api_key_here
-YOUTUBE_TRANSCRIPT_API_KEY=your_transcript_api_key_here
 EOF
     echo "📝 Please add your API keys to .env file"
 else

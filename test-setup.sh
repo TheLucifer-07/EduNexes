@@ -12,13 +12,13 @@ else
     echo "   ❌ Node modules missing - run: cd backend && npm install"
 fi
 
-# Test 2: Check transcript API configuration
+# Test 2: Check Gemini configuration
 echo ""
-echo "2️⃣ Checking transcript API configuration..."
-if [ -f ".env" ] && grep -q "YOUTUBE_TRANSCRIPT_API_KEY=" .env && ! grep -q "YOUTUBE_TRANSCRIPT_API_KEY=your_transcript_api_key_here" .env; then
-    echo "   ✅ YouTube transcript API key configured"
+echo "2️⃣ Checking Gemini configuration..."
+if [ -f ".env" ] && grep -q "GEMINI_API_KEY_1=" .env && ! grep -q "GEMINI_API_KEY_1=your_api_key_here" .env; then
+    echo "   ✅ Gemini API key configured"
 else
-    echo "   ⚠️  YOUTUBE_TRANSCRIPT_API_KEY missing in backend/.env"
+    echo "   ⚠️  GEMINI_API_KEY_1 missing in backend/.env"
 fi
 
 # Test 3: Check .env file
@@ -47,11 +47,7 @@ fi
 # Test 5: Test YouTube route config
 echo ""
 echo "5️⃣ Checking YouTube transcription setup..."
-if [ -f ".env" ] && grep -q "YOUTUBE_TRANSCRIPT_API_KEY=" .env && ! grep -q "YOUTUBE_TRANSCRIPT_API_KEY=your_transcript_api_key_here" .env; then
-    echo "   ✅ Backend is ready to request transcripts"
-else
-    echo "   ❌ Missing YOUTUBE_TRANSCRIPT_API_KEY"
-fi
+echo "   ✅ Backend uses free public captions endpoint"
 
 echo ""
 echo "📋 Summary:"
