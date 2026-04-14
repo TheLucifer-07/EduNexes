@@ -120,10 +120,10 @@ const Login = () => {
             </div>
           </div>
 
-          <a href="/signup"
+          <Link href="/signup"
             className="block w-full py-2.5 text-center text-sm font-medium text-[#E6D3A3]/70 border border-[#E6D3A3]/15 rounded-xl hover:border-[#E6D3A3]/35 hover:text-[#E6D3A3] transition-all duration-200">
             Create Account
-          </a>
+          </Link>
         </div>
 
         <p className="text-center text-xs text-gray-600 mt-5">
