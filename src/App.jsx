@@ -30,7 +30,6 @@ function App() {
 
         {/* AUTH */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Signup />} />
         <Route path="/signup" element={<Signup />} />
       </Routes>
       <Footer />
