@@ -5,8 +5,6 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
-import OpenAI from "openai";
-import ytdl from "ytdl-core";
 import authRoutes from "./auth.js";
 
 // Fix __dirname for ES modules
@@ -43,7 +41,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Load Gemini API key
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY_1;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const YOUTUBE_TRANSCRIPT_API_KEY = process.env.YOUTUBE_TRANSCRIPT_API_KEY;
 
 // Log API key status
 if (!GEMINI_API_KEY) {
@@ -52,44 +50,50 @@ if (!GEMINI_API_KEY) {
   console.log("🔑 Gemini API Key Loaded ✅");
 }
 
-if (!OPENAI_API_KEY) {
-  console.warn("⚠️  OPENAI API KEY NOT FOUND - Add OPENAI_API_KEY to environment variables");
+if (!YOUTUBE_TRANSCRIPT_API_KEY) {
+  console.warn("⚠️  YOUTUBE TRANSCRIPT API KEY NOT FOUND - Add YOUTUBE_TRANSCRIPT_API_KEY to environment variables");
 }
 
 // Initialize Gemini (lazy initialization)
 let genAI = null;
 let model = null;
-const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
 
 // YouTube transcription helpers
-const MAX_TRANSCRIPTION_BYTES = 24 * 1024 * 1024;
-
 const getYouTubeVideoId = (videoUrl) => {
   try {
-    return ytdl.getURLVideoID(videoUrl);
+    const parsedUrl = new URL(videoUrl);
+    const host = parsedUrl.hostname.replace(/^www\./, "").toLowerCase();
+    const parts = parsedUrl.pathname.split("/").filter(Boolean);
+
+    if (host === "youtu.be" && parts[0]) return parts[0];
+    if (host.endsWith("youtube.com")) {
+      if (parsedUrl.searchParams.get("v")) return parsedUrl.searchParams.get("v");
+      if (["shorts", "embed", "live"].includes(parts[0]) && parts[1]) return parts[1];
+    }
   } catch {
     return null;
   }
+
+  return null;
 };
 
-const pickAudioFormat = (formats) => {
-  const audioFormats = ytdl
-    .filterFormats(formats, "audioonly")
-    .filter((format) => format.url)
-    .sort((a, b) => (Number(a.contentLength || 0) || Number(a.bitrate || 0)) - (Number(b.contentLength || 0) || Number(b.bitrate || 0)));
-
-  const withinLimit = audioFormats.find((format) => {
-    const contentLength = Number(format.contentLength || 0);
-    return contentLength > 0 && contentLength <= MAX_TRANSCRIPTION_BYTES;
-  });
-
-  return withinLimit || audioFormats[0] || null;
+const buildTranscriptText = (payload) => {
+  const transcript = payload?.data?.transcript;
+  if (!transcript) return "";
+  if (typeof transcript.text === "string" && transcript.text.trim()) return transcript.text.trim();
+  if (Array.isArray(transcript.segments)) {
+    return transcript.segments
+      .map((segment) => segment?.text?.trim())
+      .filter(Boolean)
+      .join(" ");
+  }
+  return "";
 };
 
 const fetchYouTubeTranscript = async (videoUrl) => {
-  if (!openai) {
-    const error = new Error("OPENAI_API_KEY is not set in environment variables");
-    error.code = "OPENAI_API_KEY_MISSING";
+  if (!YOUTUBE_TRANSCRIPT_API_KEY) {
+    const error = new Error("Transcript API key is not configured");
+    error.code = "TRANSCRIPT_API_KEY_MISSING";
     throw error;
   }
 
@@ -100,58 +104,45 @@ const fetchYouTubeTranscript = async (videoUrl) => {
     throw error;
   }
 
-  const info = await ytdl.getInfo(videoId);
-  const audioFormat = pickAudioFormat(info.formats);
+  const response = await fetch("https://youtubetranscript.dev/api/v2/transcribe", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${YOUTUBE_TRANSCRIPT_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      video: videoId,
+      language: "en",
+      source: "auto",
+      format: { timestamp: false, paragraphs: false },
+    }),
+  });
 
-  if (!audioFormat?.url) {
-    const error = new Error("No audio available for this video");
-    error.code = "NO_AUDIO";
-    throw error;
-  }
-
-  const contentLength = Number(audioFormat.contentLength || 0);
-  if (contentLength > MAX_TRANSCRIPTION_BYTES) {
-    const error = new Error("Video audio is too large for transcription");
-    error.code = "AUDIO_TOO_LARGE";
-    throw error;
-  }
-
-  const audioResponse = await fetch(audioFormat.url);
-  if (!audioResponse.ok) {
-    const error = new Error(`Failed to fetch YouTube audio: ${audioResponse.status}`);
-    error.code = "AUDIO_FETCH_FAILED";
-    throw error;
-  }
-
-  const audioBuffer = Buffer.from(await audioResponse.arrayBuffer());
-  if (!audioBuffer.length) {
-    const error = new Error("No audio available for this video");
-    error.code = "NO_AUDIO";
-    throw error;
-  }
-
-  if (audioBuffer.length > MAX_TRANSCRIPTION_BYTES) {
-    const error = new Error("Video audio is too large for transcription");
-    error.code = "AUDIO_TOO_LARGE";
-    throw error;
-  }
-
-  const extension = audioFormat.container || "webm";
-  const mimeType = audioFormat.mimeType?.split(";")[0] || "audio/webm";
-  const audioFile = new File([audioBuffer], `youtube-${videoId}.${extension}`, { type: mimeType });
-
+  let payload = null;
   try {
-    const transcription = await openai.audio.transcriptions.create({
-      model: "whisper-1",
-      file: audioFile,
-    });
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
 
-    return transcription.text;
-  } catch (err) {
-    const error = new Error(err.message || "OpenAI transcription failed");
-    error.code = "OPENAI_TRANSCRIPTION_FAILED";
+  if (!response.ok) {
+    const error = new Error(
+      response.status === 404
+        ? "Transcript not available for this video"
+        : payload?.error || payload?.message || "Transcript API request failed"
+    );
+    error.code = payload?.code || `TRANSCRIPT_API_${response.status}`;
     throw error;
   }
+
+  const transcriptText = buildTranscriptText(payload);
+  if (!transcriptText) {
+    const error = new Error("Transcript not available for this video");
+    error.code = "NO_CAPTIONS";
+    throw error;
+  }
+
+  return transcriptText;
 };
 
 const initializeGemini = (modelName = "gemini-flash-latest") => {
@@ -320,13 +311,13 @@ app.post("/api/youtube", async (req, res) => {
   }
 
   try {
-    console.log("🎧 Fetching YouTube audio...");
+    console.log("📝 Fetching YouTube transcript...");
     const transcriptText = await fetchYouTubeTranscript(url);
 
     if (!transcriptText || transcriptText.trim().length === 0) {
-      return res.status(502).json({
-        error: "Transcript service returned no data",
-        code: "EMPTY_TRANSCRIPT_RESPONSE",
+      return res.status(404).json({
+        success: false,
+        error: "Transcript not available for this video",
       });
     }
 
@@ -368,8 +359,9 @@ ${transcript}
   } catch (err) {
     console.error("❌ YouTube Transcription Error:", err.message);
 
-    const statusCode = ["INVALID_URL", "NO_AUDIO", "AUDIO_TOO_LARGE"].includes(err.code) ? 400 : 502;
+    const statusCode = err.code === "INVALID_URL" ? 400 : err.code === "NO_CAPTIONS" ? 404 : 502;
     return res.status(statusCode).json({
+      success: false,
       error: err.message || "Failed to fetch transcript",
       code: err.code || "YOUTUBE_TRANSCRIPTION_FAILED",
     });

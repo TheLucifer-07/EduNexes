@@ -37,11 +37,10 @@ else
     echo "   Install with: cd backend && npm install"
 fi
 
-if python3 -c "import youtube_transcript_api" 2>/dev/null; then
-    echo "   ✅ Python youtube-transcript-api installed"
+if [ -f "backend/.env" ] && grep -q "YOUTUBE_TRANSCRIPT_API_KEY=" backend/.env && ! grep -q "YOUTUBE_TRANSCRIPT_API_KEY=your_transcript_api_key_here" backend/.env; then
+    echo "   ✅ YouTube transcript API key configured"
 else
-    echo "   ❌ Python package missing"
-    echo "   Install with: pip3 install youtube-transcript-api"
+    echo "   ⚠️  YouTube transcript API key not configured"
 fi
 
 echo ""

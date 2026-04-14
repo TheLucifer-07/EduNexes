@@ -63,7 +63,7 @@ Create study material in seconds
 ### 🎥 YouTube AI
 
 Turn videos into study-ready content
-- Transcript extraction via Python
+- Transcript extraction via captions API
 - Summary and key points
 - Mind-map style output
 
@@ -114,7 +114,7 @@ Browse academic material quickly
 |---|---|---|
 | `AI Chat` | Answers student questions in conversational format | Gemini API |
 | `Notes Generator` | Produces structured notes from topic input | Gemini API |
-| `YouTube AI` | Fetches transcript and converts it into study output | Python + Gemini |
+| `YouTube AI` | Fetches transcript and converts it into study output | Transcript API + Gemini |
 | `Resume Analyzer` | Reviews PDF resumes for selected job roles | Gemini API |
 | `Task Manager` | Saves and updates user tasks with progress states | Express + MongoDB |
 | `Auth System` | Signup, login, token-based access | JWT + bcrypt |
@@ -152,8 +152,7 @@ dotenv
 ### AI + Processing
 ```bash
 Google Gemini API
-Python 3
-youtube-transcript-api
+Hosted YouTube transcript API
 ```
 
 ### Deployment
@@ -192,9 +191,9 @@ Environment-based API URL setup
 │         └───────┬────────┘             └────────┬────────┘   │
 │                 │                               │            │
 │         ┌───────▼────────┐                      │            │
-│         │ Python Script  │                      │            │
-│         │ YouTube        │                      │            │
 │         │ Transcript API │                      │            │
+│         │ YouTube        │                      │            │
+│         │ Captions       │                      │            │
 │         └────────────────┘                      │            │
 │                                                              │
 └──────────────────────────────────────────────────────────────┘
@@ -209,7 +208,7 @@ Environment-based API URL setup
 2. Frontend sends a request to the Express backend using VITE_API_URL
 3. Backend validates input and routes the request
 4. Gemini generates notes, chat replies, resume feedback, or study output
-5. For YouTube AI, Python fetches transcript first, then Gemini structures it
+5. For YouTube AI, the backend fetches captions first, then Gemini structures them
 6. For task tracking, MongoDB stores task state, streaks, and user accounts
 7. Frontend renders polished results for study, planning, or export
 ```
@@ -222,7 +221,6 @@ Environment-based API URL setup
 
 - Node.js 18+
 - npm
-- Python 3
 - MongoDB connection string
 - Gemini API key
 
@@ -247,13 +245,7 @@ npm install
 cd ..
 ```
 
-### 4. Install Python Dependency for YouTube Transcripts
-
-```bash
-pip3 install youtube-transcript-api
-```
-
-### 5. Configure Environment Variables
+### 4. Configure Environment Variables
 
 Frontend `.env`
 
@@ -265,12 +257,13 @@ Backend `backend/.env`
 
 ```env
 GEMINI_API_KEY_1=your_gemini_api_key
+YOUTUBE_TRANSCRIPT_API_KEY=your_transcript_api_key
 PORT=5004
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 ```
 
-### 6. Run the App
+### 5. Run the App
 
 Terminal 1:
 
@@ -334,7 +327,6 @@ EduNexesV4/
 │   │   └── User.js
 │   ├── auth.js
 │   ├── server.js
-│   ├── transcript.py
 │   └── .env
 ├── .env
 ├── .env.production
@@ -416,7 +408,7 @@ The UI follows a premium gold-on-dark aesthetic with:
 
 **Hemachandu Animireddy**
 
-Built with React, Node.js, MongoDB, Python, and Gemini AI.
+Built with React, Node.js, MongoDB, and Gemini AI.
 
 ---
 

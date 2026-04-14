@@ -12,13 +12,13 @@ else
     echo "   ❌ Node modules missing - run: cd backend && npm install"
 fi
 
-# Test 2: Check Python dependencies
+# Test 2: Check transcript API configuration
 echo ""
-echo "2️⃣ Checking Python dependencies..."
-if python3 -c "import youtube_transcript_api" 2>/dev/null; then
-    echo "   ✅ youtube-transcript-api installed"
+echo "2️⃣ Checking transcript API configuration..."
+if [ -f ".env" ] && grep -q "YOUTUBE_TRANSCRIPT_API_KEY=" .env && ! grep -q "YOUTUBE_TRANSCRIPT_API_KEY=your_transcript_api_key_here" .env; then
+    echo "   ✅ YouTube transcript API key configured"
 else
-    echo "   ❌ youtube-transcript-api missing - run: pip3 install youtube-transcript-api"
+    echo "   ⚠️  YOUTUBE_TRANSCRIPT_API_KEY missing in backend/.env"
 fi
 
 # Test 3: Check .env file
@@ -44,15 +44,13 @@ else
     echo "   ⚠️  Backend not running - start with: cd backend && npm start"
 fi
 
-# Test 5: Test Python script directly
+# Test 5: Test YouTube route config
 echo ""
-echo "5️⃣ Testing Python transcript script..."
-TEST_URL="https://www.youtube.com/watch?v=jNQXAC9IVRw"
-RESULT=$(python3 transcript.py "$TEST_URL" 2>&1 | head -c 100)
-if [[ $RESULT == Error* ]]; then
-    echo "   ❌ Python script error: $RESULT"
+echo "5️⃣ Checking YouTube transcription setup..."
+if [ -f ".env" ] && grep -q "YOUTUBE_TRANSCRIPT_API_KEY=" .env && ! grep -q "YOUTUBE_TRANSCRIPT_API_KEY=your_transcript_api_key_here" .env; then
+    echo "   ✅ Backend is ready to request transcripts"
 else
-    echo "   ✅ Python script working"
+    echo "   ❌ Missing YOUTUBE_TRANSCRIPT_API_KEY"
 fi
 
 echo ""

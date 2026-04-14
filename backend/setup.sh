@@ -6,26 +6,14 @@ echo "🔧 Setting up YouTube AI Backend..."
 echo "📦 Installing Node.js dependencies..."
 npm install
 
-# Check if Python3 is installed
-if ! command -v python3 &> /dev/null; then
-    echo "❌ Python3 is not installed. Please install Python3 first."
-    exit 1
-fi
-
-# Install Python dependencies
-echo "🐍 Installing Python dependencies..."
-pip3 install youtube-transcript-api
-
 # Check if .env exists
 if [ ! -f .env ]; then
     echo "⚠️  .env file not found. Creating template..."
     cat > .env << EOF
 GEMINI_API_KEY_1=your_api_key_here
-GEMINI_API_KEY_2=
-GEMINI_API_KEY_3=
-GEMINI_API_KEY_4=
+YOUTUBE_TRANSCRIPT_API_KEY=your_transcript_api_key_here
 EOF
-    echo "📝 Please add your Gemini API keys to .env file"
+    echo "📝 Please add your API keys to .env file"
 else
     echo "✅ .env file found"
 fi
