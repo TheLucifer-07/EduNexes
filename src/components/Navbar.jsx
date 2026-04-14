@@ -175,7 +175,7 @@ const Navbar = () => {
                   <Link to="/login" className="flex-1">
                     <button className="w-full btn-outline text-sm py-2">Login</button>
                   </Link>
-                  <Link to="/register" className="flex-1">
+                  <Link to="/signup" className="flex-1">
                     <button className="w-full btn-primary text-sm py-2">Sign Up</button>
                   </Link>
                 </>
