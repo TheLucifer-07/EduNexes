@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MessageSquare, FileText, Play, Briefcase, BookOpen } from "lucide-react";
+import { MessageSquare, FileText, Briefcase, BookOpen } from "lucide-react";
 
 const Footer = () => (
   <footer className="relative border-t border-[#E6D3A3]/10 mt-8 route-shell-enter">
@@ -26,7 +26,6 @@ const Footer = () => (
             {[
               { to: "/chat",     icon: <MessageSquare size={13} />, label: "AI Chat"          },
               { to: "/notes",    icon: <FileText size={13} />,      label: "Notes Generator"  },
-              { to: "/youtube",  icon: <Play size={13} />,       label: "YouTube AI"       },
               { to: "/resume",   icon: <Briefcase size={13} />,     label: "Resume Analyzer"  },
               { to: "/resources",icon: <BookOpen size={13} />,      label: "Resources"        },
             ].map(({ to, icon, label }) => (

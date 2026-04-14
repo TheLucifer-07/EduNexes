@@ -1,5 +1,4 @@
 import express from "express";
-import axios from "axios";
 import cors from "cors";
 import dotenv from "dotenv";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -53,90 +52,6 @@ if (!GEMINI_API_KEY) {
 // Initialize Gemini (lazy initialization)
 let genAI = null;
 let model = null;
-
-// YouTube transcription helpers
-const getYouTubeVideoId = (videoUrl) => {
-  try {
-    const parsedUrl = new URL(videoUrl);
-    const host = parsedUrl.hostname.replace(/^www\./, "").toLowerCase();
-    const parts = parsedUrl.pathname.split("/").filter(Boolean);
-
-    if (host === "youtu.be" && parts[0]) return parts[0];
-    if (host.endsWith("youtube.com")) {
-      if (parsedUrl.searchParams.get("v")) return parsedUrl.searchParams.get("v");
-      if (["shorts", "embed", "live"].includes(parts[0]) && parts[1]) return parts[1];
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
-};
-
-const decodeXmlEntities = (text) => text
-  .replace(/&amp;/g, "&")
-  .replace(/&lt;/g, "<")
-  .replace(/&gt;/g, ">")
-  .replace(/&quot;/g, '"')
-  .replace(/&#39;/g, "'");
-
-const buildTranscriptText = (xmlData) => {
-  if (!xmlData || typeof xmlData !== "string") return "";
-  return decodeXmlEntities(xmlData)
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-};
-
-const fetchYouTubeTranscript = async (videoUrl) => {
-  const videoId = getYouTubeVideoId(videoUrl);
-  if (!videoId) {
-    const error = new Error("Invalid YouTube URL");
-    error.code = "INVALID_URL";
-    throw error;
-  }
-
-  try {
-    // Free caption discovery endpoint
-    const videoResponse = await axios.get(`https://yt.lemnoslife.com/videos?part=captions&id=${videoId}`);
-    const captionTracks = videoResponse.data?.items?.[0]?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-    console.log("📺 Captions response:", videoResponse.data);
-
-    const selectedTrack = captionTracks?.find((track) => track.languageCode === "en") || captionTracks?.[0];
-    console.log("🎯 Selected caption track:", selectedTrack);
-
-    const captionUrl = selectedTrack?.baseUrl;
-
-    if (!captionUrl) {
-      const error = new Error("No captions available for this video");
-      error.code = "NO_CAPTIONS";
-      throw error;
-    }
-
-    // Fetch the XML captions and flatten them into plain text
-    const captionsResponse = await axios.get(captionUrl);
-    const xmlData = captionsResponse.data;
-    const matches = xmlData.match(/<text[^>]*>(.*?)<\/text>/g);
-    const transcriptText = matches
-      ?.map((line) => decodeXmlEntities(line.replace(/<[^>]+>/g, "")))
-      .join(" ")
-      .replace(/\s+/g, " ")
-      .trim() || "";
-
-    if (!transcriptText) {
-      const error = new Error("No captions available for this video");
-      error.code = "NO_CAPTIONS";
-      throw error;
-    }
-
-    return transcriptText;
-  } catch (err) {
-    if (err.code === "NO_CAPTIONS" || err.code === "INVALID_URL") throw err;
-    const error = new Error("Failed to fetch YouTube transcript");
-    error.code = "TRANSCRIPT_FETCH_FAILED";
-    throw error;
-  }
-};
 
 const initializeGemini = (modelName = "gemini-flash-latest") => {
   if (!GEMINI_API_KEY) {
@@ -284,86 +199,6 @@ Make it student-friendly and easy to understand.`;
     console.error("❌ Notes Generation Error:", err.message);
     res.status(500).json({
       error: err.message || "Notes generation failed",
-    });
-  }
-});
-
-// YouTube API route
-app.post("/api/youtube", async (req, res) => {
-  const { url } = req.body;
-
-  console.log("📩 URL:", url);
-
-  // Validation
-  if (!url) {
-    return res.status(400).json({ error: "URL is required" });
-  }
-
-  if (!url.includes("youtube.com") && !url.includes("youtu.be")) {
-    return res.status(400).json({ error: "Invalid YouTube URL" });
-  }
-
-  try {
-    console.log("📝 Fetching YouTube transcript...");
-    const transcriptText = await fetchYouTubeTranscript(url);
-
-    if (!transcriptText || transcriptText.trim().length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No captions available for this video",
-        error: "No captions available for this video",
-      });
-    }
-
-    console.log("✅ Transcript fetched");
-
-    try {
-      // Limit transcript size (important for Gemini)
-      const transcript = transcriptText.slice(0, 8000);
-
-      const prompt = `
-You are an AI study assistant.
-
-Convert the following YouTube transcript into:
-
-1. 📄 Summary (clear & simple)
-2. 🧠 Key Points (bullet points)
-3. 🌳 Mind Map (structured)
-
-Keep it clean and readable.
-
-Transcript:
-${transcript}
-`;
-
-      console.log("🤖 Sending to Gemini...");
-
-      const aiResult = await generateWithGemini(prompt);
-
-      console.log("✅ AI Response Ready");
-
-      res.json({ result: aiResult });
-
-    } catch (err) {
-      console.error("❌ AI Processing Error:", err.message);
-      res.status(500).json({
-        error: err.message || "AI processing failed",
-      });
-    }
-  } catch (err) {
-    console.error("❌ YouTube Transcription Error:", err.message);
-
-    const statusCode = err.code === "INVALID_URL" ? 400 : err.code === "NO_CAPTIONS" ? 404 : 500;
-    const message = err.code === "INVALID_URL"
-      ? "Invalid YouTube URL"
-      : err.code === "NO_CAPTIONS"
-        ? "No captions available for this video"
-        : "Failed to fetch YouTube transcript";
-    return res.status(statusCode).json({
-      success: false,
-      message,
-      error: message,
-      code: err.code || "YOUTUBE_TRANSCRIPTION_FAILED",
     });
   }
 });

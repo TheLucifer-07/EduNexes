@@ -41,11 +41,6 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // close mobile menu on route change
-  useEffect(() => {
-    setIsOpen(false);
-  }, [location.pathname]);
-
   const isActive = (path) => location.pathname === path;
 
   const handleLogout = () => {
@@ -55,11 +50,14 @@ const Navbar = () => {
     navigate("/login");
   };
 
+  const handleMobileNavClick = () => {
+    setIsOpen(false);
+  };
+
   const links = [
     { to: "/", label: "Home" },
     { to: "/chat", label: "Chat" },
     { to: "/notes", label: "Notes" },
-    { to: "/youtube", label: "YouTube" },
     { to: "/resume", label: "Resume" },
     { to: "/resources", label: "Resources" },
   ];
@@ -157,18 +155,18 @@ const Navbar = () => {
       {isOpen && (
         <div className="md:hidden px-5 pb-4 space-y-2">
           {links.map(({ to, label }) => (
-            <Link key={to} to={to} className="block text-white py-2">
+            <Link key={to} to={to} onClick={handleMobileNavClick} className="block text-white py-2">
               {label}
             </Link>
           ))}
 
           {!user && (
             <>
-              <Link to="/login">
+              <Link to="/login" onClick={handleMobileNavClick}>
                 <button className="w-full btn-outline py-2">Login</button>
               </Link>
 
-              <Link to="/signup">
+              <Link to="/signup" onClick={handleMobileNavClick}>
                 <button className="w-full btn-primary py-2">Sign Up</button>
               </Link>
             </>

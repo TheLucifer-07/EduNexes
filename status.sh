@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🔍 YouTube AI - Status Check"
+echo "🔍 EduNexes - Status Check"
 echo "================================"
 echo ""
 
@@ -36,10 +36,6 @@ else
     echo "   ❌ Backend dependencies missing"
     echo "   Install with: cd backend && npm install"
 fi
-
-echo "   ✅ YouTube transcript uses free public captions endpoint"
-
-echo ""
 
 # Check Config
 echo "⚙️  Configuration:"

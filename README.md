@@ -25,7 +25,6 @@ It helps students with:
 
 ✨ AI chat for instant doubt solving  
 📝 AI notes generation by subject and topic  
-🎥 YouTube transcript analysis with summaries and mind maps  
 📄 Resume analysis for job-ready improvement  
 ✅ Personal task tracking with progress and streaks  
 📚 Large branch/year-wise academic resource library  
@@ -58,21 +57,6 @@ Create study material in seconds
 - Bullet or paragraph output
 
 </td>
-<td align="center" width="33%">
-
-### 🎥 YouTube AI
-
-Turn videos into study-ready content
-- Transcript extraction via captions API
-- Summary and key points
-- Mind-map style output
-
-</td>
-</tr>
-</table>
-
-<table>
-<tr>
 <td align="center" width="33%">
 
 ### 📄 Resume Analyzer
@@ -114,7 +98,6 @@ Browse academic material quickly
 |---|---|---|
 | `AI Chat` | Answers student questions in conversational format | Gemini API |
 | `Notes Generator` | Produces structured notes from topic input | Gemini API |
-| `YouTube AI` | Fetches transcript and converts it into study output | Transcript API + Gemini |
 | `Resume Analyzer` | Reviews PDF resumes for selected job roles | Gemini API |
 | `Task Manager` | Saves and updates user tasks with progress states | Express + MongoDB |
 | `Auth System` | Signup, login, token-based access | JWT + bcrypt |
@@ -152,7 +135,6 @@ dotenv
 ### AI + Processing
 ```bash
 Google Gemini API
-Hosted YouTube transcript API
 ```
 
 ### Deployment
@@ -181,7 +163,7 @@ Environment-based API URL setup
 │                 ▼                                            │
 │  ┌────────────────────────────────────────────────────────┐  │
 │  │ Express API Layer                                     │  │
-│  │ /api/chat /api/notes /api/youtube /api/resume         │  │
+│  │ /api/chat /api/notes /api/resume                      │  │
 │  │ /api/signup /api/login /api/tasks /api/task/complete  │  │
 │  └──────────────┬───────────────────────────────┬─────────┘  │
 │                 │                               │            │
@@ -190,11 +172,6 @@ Environment-based API URL setup
 │         │ Text analysis  │             │ Users + Tasks   │   │
 │         └───────┬────────┘             └────────┬────────┘   │
 │                 │                               │            │
-│         ┌───────▼────────┐                      │            │
-│         │ Transcript API │                      │            │
-│         │ YouTube        │                      │            │
-│         │ Captions       │                      │            │
-│         └────────────────┘                      │            │
 │                                                              │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -207,10 +184,9 @@ Environment-based API URL setup
 1. User opens EduNexes and selects a tool
 2. Frontend sends a request to the Express backend using VITE_API_URL
 3. Backend validates input and routes the request
-4. Gemini generates notes, chat replies, resume feedback, or study output
-5. For YouTube AI, the backend fetches captions first, then Gemini structures them
-6. For task tracking, MongoDB stores task state, streaks, and user accounts
-7. Frontend renders polished results for study, planning, or export
+4. Gemini generates notes, chat replies, and resume feedback
+5. For task tracking, MongoDB stores task state, streaks, and user accounts
+6. Frontend renders polished results for study, planning, or export
 ```
 
 ---
@@ -316,7 +292,7 @@ EduNexesV4/
 │   │   ├── Resources.jsx
 │   │   ├── Resume.jsx
 │   │   ├── Signup.jsx
-│   │   └── YouTube.jsx
+│   │   └── ...
 │   ├── App.jsx
 │   ├── main.jsx
 │   └── index.css
@@ -340,7 +316,6 @@ EduNexesV4/
 ### AI Routes
 - `POST /api/chat`
 - `POST /api/notes`
-- `POST /api/youtube`
 - `POST /api/resume`
 
 ### Auth + Productivity Routes
@@ -385,7 +360,6 @@ The UI follows a premium gold-on-dark aesthetic with:
 | Gemini notes generation | ✅ Working |
 | Gemini chat assistant | ✅ Working |
 | Resume analysis | ✅ Working |
-| YouTube transcript workflow | ✅ Working |
 | Resource library navigation | ✅ Working |
 | Production env slot for backend URL | ✅ Ready |
 

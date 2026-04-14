@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Starting YouTube AI Application..."
+echo "🚀 Starting EduNexes Application..."
 echo ""
 
 # Check if backend dependencies are installed

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🧪 Testing YouTube AI Setup..."
+echo "🧪 Testing EduNexes Setup..."
 echo ""
 
 # Test 1: Check if backend dependencies are installed
@@ -44,12 +44,6 @@ else
     echo "   ⚠️  Backend not running - start with: cd backend && npm start"
 fi
 
-# Test 5: Test YouTube route config
-echo ""
-echo "5️⃣ Checking YouTube transcription setup..."
-echo "   ✅ Backend uses free public captions endpoint"
-
-echo ""
 echo "📋 Summary:"
 echo "   - If all checks pass, your setup is ready!"
 echo "   - Start backend: cd backend && npm start"

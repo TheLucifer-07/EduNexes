@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🔧 Setting up YouTube AI Backend..."
+echo "🔧 Setting up EduNexes Backend..."
 
 # Install Node.js dependencies
 echo "📦 Installing Node.js dependencies..."

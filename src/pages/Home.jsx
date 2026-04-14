@@ -41,7 +41,7 @@ const Home = () => {
   });
 
   const [tasks, setTasks]       = useState([]);
-  const [loading, setLoading]   = useState(false);
+  const [loading, setLoading]   = useState(() => Boolean(user));
   const [taskInput, setTaskInput] = useState("");
   const [priority, setPriority]   = useState("Medium");
   const [dueDate, setDueDate]     = useState("");
@@ -53,7 +53,6 @@ const Home = () => {
   // Fetch tasks from MongoDB on mount
   useEffect(() => {
     if (!user) return;
-    setLoading(true);
     fetch(`${API_URL}/api/tasks`, { headers: authHeaders() })
       .then((r) => r.json())
       .then((data) => setTasks(data.tasks || []))
@@ -148,11 +147,10 @@ const Home = () => {
       )}
 
       {/* FEATURES */}
-      <div className="mt-16 grid md:grid-cols-4 gap-6">
+      <div className="mt-16 grid md:grid-cols-3 gap-6">
         <FeatureCard title="AI Chat"         desc="Ask anything and learn instantly"   link="/chat" delay={0}   />
         <FeatureCard title="Notes Generator" desc="Turn topics into structured notes"  link="/notes" delay={120} />
-        <FeatureCard title="YouTube AI"      desc="Convert videos into mindmaps"       link="/youtube" delay={240} />
-        <FeatureCard title="Resume Analyzer" desc="Improve your resume with AI"        link="/resume" delay={360} />
+        <FeatureCard title="Resume Analyzer" desc="Improve your resume with AI"        link="/resume" delay={240} />
       </div>
 
       {/* PROGRESS + TASK MANAGER — only when logged in */}
@@ -391,7 +389,7 @@ const Home = () => {
         <div className="flex flex-wrap justify-center gap-4">
           <Link to="/chat"    className="action-btn">Start Chat</Link>
           <Link to="/notes"   className="action-btn">Create Notes</Link>
-          <Link to="/youtube" className="action-btn">Analyze Video</Link>
+          <Link to="/resume"  className="action-btn">Review Resume</Link>
         </div>
       </Reveal>
 
