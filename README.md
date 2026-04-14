@@ -391,7 +391,7 @@ Built with React, Node.js, MongoDB, and Gemini AI.
 
 If you like EduNexes, give this project a ⭐ and share it with other students.
 
-**Study smarter. Build consistency. Learn with AI.**
+**Study smarter. Build consistency.**
 
 [Back to Top](#edunexes)
 
