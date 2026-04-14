@@ -1,11 +1,12 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { execFile } from "child_process";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
+import OpenAI from "openai";
+import ytdl from "ytdl-core";
 import authRoutes from "./auth.js";
 
 // Fix __dirname for ES modules
@@ -42,6 +43,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Load Gemini API key
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY_1;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 // Log API key status
 if (!GEMINI_API_KEY) {
@@ -50,9 +52,107 @@ if (!GEMINI_API_KEY) {
   console.log("🔑 Gemini API Key Loaded ✅");
 }
 
+if (!OPENAI_API_KEY) {
+  console.warn("⚠️  OPENAI API KEY NOT FOUND - Add OPENAI_API_KEY to environment variables");
+}
+
 // Initialize Gemini (lazy initialization)
 let genAI = null;
 let model = null;
+const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
+
+// YouTube transcription helpers
+const MAX_TRANSCRIPTION_BYTES = 24 * 1024 * 1024;
+
+const getYouTubeVideoId = (videoUrl) => {
+  try {
+    return ytdl.getURLVideoID(videoUrl);
+  } catch {
+    return null;
+  }
+};
+
+const pickAudioFormat = (formats) => {
+  const audioFormats = ytdl
+    .filterFormats(formats, "audioonly")
+    .filter((format) => format.url)
+    .sort((a, b) => (Number(a.contentLength || 0) || Number(a.bitrate || 0)) - (Number(b.contentLength || 0) || Number(b.bitrate || 0)));
+
+  const withinLimit = audioFormats.find((format) => {
+    const contentLength = Number(format.contentLength || 0);
+    return contentLength > 0 && contentLength <= MAX_TRANSCRIPTION_BYTES;
+  });
+
+  return withinLimit || audioFormats[0] || null;
+};
+
+const fetchYouTubeTranscript = async (videoUrl) => {
+  if (!openai) {
+    const error = new Error("OPENAI_API_KEY is not set in environment variables");
+    error.code = "OPENAI_API_KEY_MISSING";
+    throw error;
+  }
+
+  const videoId = getYouTubeVideoId(videoUrl);
+  if (!videoId) {
+    const error = new Error("Invalid YouTube URL");
+    error.code = "INVALID_URL";
+    throw error;
+  }
+
+  const info = await ytdl.getInfo(videoId);
+  const audioFormat = pickAudioFormat(info.formats);
+
+  if (!audioFormat?.url) {
+    const error = new Error("No audio available for this video");
+    error.code = "NO_AUDIO";
+    throw error;
+  }
+
+  const contentLength = Number(audioFormat.contentLength || 0);
+  if (contentLength > MAX_TRANSCRIPTION_BYTES) {
+    const error = new Error("Video audio is too large for transcription");
+    error.code = "AUDIO_TOO_LARGE";
+    throw error;
+  }
+
+  const audioResponse = await fetch(audioFormat.url);
+  if (!audioResponse.ok) {
+    const error = new Error(`Failed to fetch YouTube audio: ${audioResponse.status}`);
+    error.code = "AUDIO_FETCH_FAILED";
+    throw error;
+  }
+
+  const audioBuffer = Buffer.from(await audioResponse.arrayBuffer());
+  if (!audioBuffer.length) {
+    const error = new Error("No audio available for this video");
+    error.code = "NO_AUDIO";
+    throw error;
+  }
+
+  if (audioBuffer.length > MAX_TRANSCRIPTION_BYTES) {
+    const error = new Error("Video audio is too large for transcription");
+    error.code = "AUDIO_TOO_LARGE";
+    throw error;
+  }
+
+  const extension = audioFormat.container || "webm";
+  const mimeType = audioFormat.mimeType?.split(";")[0] || "audio/webm";
+  const audioFile = new File([audioBuffer], `youtube-${videoId}.${extension}`, { type: mimeType });
+
+  try {
+    const transcription = await openai.audio.transcriptions.create({
+      model: "whisper-1",
+      file: audioFile,
+    });
+
+    return transcription.text;
+  } catch (err) {
+    const error = new Error(err.message || "OpenAI transcription failed");
+    error.code = "OPENAI_TRANSCRIPTION_FAILED";
+    throw error;
+  }
+};
 
 const initializeGemini = (modelName = "gemini-flash-latest") => {
   if (!GEMINI_API_KEY) {
@@ -205,7 +305,7 @@ Make it student-friendly and easy to understand.`;
 });
 
 // YouTube API route
-app.post("/api/youtube", (req, res) => {
+app.post("/api/youtube", async (req, res) => {
   const { url } = req.body;
 
   console.log("📩 URL:", url);
@@ -219,46 +319,14 @@ app.post("/api/youtube", (req, res) => {
     return res.status(400).json({ error: "Invalid YouTube URL" });
   }
 
-  // Python script path
-  const scriptPath = path.join(__dirname, "transcript.py");
+  try {
+    console.log("🎧 Fetching YouTube audio...");
+    const transcriptText = await fetchYouTubeTranscript(url);
 
-  console.log("🐍 Running Python script...");
-
-  execFile("python3", [scriptPath, url], { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout, stderr) => {
-    // Python error
-    if (error) {
-      console.error("❌ Python Error:", stderr || error.message);
-      return res.status(500).json({
-        error: "Failed to run transcript service",
-        code: "PYTHON_EXECUTION_FAILED",
-      });
-    }
-
-    // Empty output
-    if (!stdout || stdout.trim().length === 0) {
-      return res.status(500).json({
+    if (!transcriptText || transcriptText.trim().length === 0) {
+      return res.status(502).json({
         error: "Transcript service returned no data",
         code: "EMPTY_TRANSCRIPT_RESPONSE",
-      });
-    }
-
-    let transcriptPayload;
-    try {
-      transcriptPayload = JSON.parse(stdout.trim());
-    } catch (parseError) {
-      console.error("❌ Transcript Parse Error:", parseError.message, stdout);
-      return res.status(500).json({
-        error: "Transcript service returned invalid data",
-        code: "INVALID_TRANSCRIPT_RESPONSE",
-      });
-    }
-
-    if (!transcriptPayload.ok) {
-      console.error("❌ Transcript Error:", transcriptPayload);
-      const statusCode = ["INVALID_URL", "MISSING_URL"].includes(transcriptPayload.code) ? 400 : 502;
-      return res.status(statusCode).json({
-        error: transcriptPayload.error,
-        code: transcriptPayload.code,
       });
     }
 
@@ -266,7 +334,7 @@ app.post("/api/youtube", (req, res) => {
 
     try {
       // Limit transcript size (important for Gemini)
-      const transcript = transcriptPayload.text.slice(0, 8000);
+      const transcript = transcriptText.slice(0, 8000);
 
       const prompt = `
 You are an AI study assistant.
@@ -297,7 +365,15 @@ ${transcript}
         error: err.message || "AI processing failed",
       });
     }
-  });
+  } catch (err) {
+    console.error("❌ YouTube Transcription Error:", err.message);
+
+    const statusCode = ["INVALID_URL", "NO_AUDIO", "AUDIO_TOO_LARGE"].includes(err.code) ? 400 : 502;
+    return res.status(statusCode).json({
+      error: err.message || "Failed to fetch transcript",
+      code: err.code || "YOUTUBE_TRANSCRIPTION_FAILED",
+    });
+  }
 });
 
 // Chat route
