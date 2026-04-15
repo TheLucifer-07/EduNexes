@@ -203,7 +203,7 @@ Environment-based API URL setup
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/TheLucifer-07/EduNexes
 cd EduNexesV4
 ```
 
